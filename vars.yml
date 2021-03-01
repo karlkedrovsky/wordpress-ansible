@@ -1,0 +1,13 @@
+PROJECT_NAME: wordpress-ansible
+PROJECT_BASE_URL: wordpress-ansible.bolivar.kedrovsky.com
+
+DB_NAME: wordpress
+DB_USER: wordpress
+DB_PASSWORD: wordpress
+DB_ROOT_PASSWORD: password
+
+NGINX_TAG: 1.19
+
+PHP_TAG: 7.3-dev
+
+MARIADB_TAG: 10.5

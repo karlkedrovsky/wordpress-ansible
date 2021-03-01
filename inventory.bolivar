@@ -1,0 +1,2 @@
+[bolivar]
+bolivar ansible_python_interpreter=/usr/bin/python3 traefik_hostname=traifik.bolivar.kedrovsky.com

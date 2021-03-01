@@ -1,0 +1,54 @@
+---
+- hosts: all
+  vars_files:
+    - ./vars.yml
+  tasks:
+    - name: get info regarding the web conainer
+      docker_container_info:
+        name: '{{ PROJECT_NAME }}-web'
+      register: resultsweb
+    - name: stop web conainer
+      docker_container:
+        name: '{{ PROJECT_NAME }}-web'
+        state: 'stopped'
+      when:
+        - resultsweb.exists
+        - resultsweb.container['State']['Status'] == 'running'
+    - name: get info regarding the php conainer
+      docker_container_info:
+        name: '{{ PROJECT_NAME }}-php'
+      register: resultsphp
+    - name: stop php container
+      docker_container:
+        name: '{{ PROJECT_NAME }}-php'
+        state: 'stopped'
+      when:
+        - resultsphp.exists
+        - resultsphp.container['State']['Status'] == 'running'
+    - name: get info regarding the db conainer
+      docker_container_info:
+        name: '{{ PROJECT_NAME }}-db'
+      register: resultsdb
+    - name: stop db container
+      docker_container:
+        name: '{{ PROJECT_NAME }}-db'
+        state: 'stopped'
+      when:
+        - resultsdb.exists
+        - resultsdb.container['State']['Status'] == 'running'
+    - name: remove web conainer
+      docker_container:
+        name: '{{ PROJECT_NAME }}-web'
+        state: 'absent'
+    - name: remove php container
+      docker_container:
+        name: '{{ PROJECT_NAME }}-php'
+        state: 'absent'
+    - name: remove db container
+      docker_container:
+        name: '{{ PROJECT_NAME }}-db'
+        state: 'absent'
+    - name: remove {{ PROJECT_NAME }} network
+      docker_network:
+        name: '{{ PROJECT_NAME }}'
+        state: 'absent'

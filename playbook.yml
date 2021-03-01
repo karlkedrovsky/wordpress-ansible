@@ -1,0 +1,66 @@
+---
+- hosts: all
+  vars_files:
+    - ./vars.yml
+  tasks:
+    - name: create {{ PROJECT_NAME }} network
+      docker_network:
+        name: '{{ PROJECT_NAME }}'
+    - name: deploy web conainer
+      docker_container:
+        name: '{{ PROJECT_NAME }}-web'
+        image: 'wodby/nginx:{{ NGINX_TAG }}'
+        volumes:
+          - './site:/var/www/html'
+        networks:
+          - name: web
+          - name: '{{ PROJECT_NAME }}'
+        purge_networks: yes
+        restart_policy: unless-stopped
+        env:
+          NGINX_VHOST_PRESET: 'wordpress'
+          NGINX_SERVER_ROOT: '/var/www/html'
+          NGINX_BACKEND_HOST: '{{ PROJECT_NAME }}-php'
+          NGINX_BACKEND_PORT: '9000'
+        labels:
+          '{
+             "traefik.enable": "true",
+             "traefik.http.middlewares.{{ PROJECT_NAME }}-https.redirectscheme.scheme": "https",
+             "traefik.http.middlewares.{{ PROJECT_NAME }}-https.redirectscheme.permanent": "true",
+             "traefik.http.middlewares.{{ PROJECT_NAME }}-auth.basicauth.users": "wordpress:$apr1$rRXORrq4$qvqRFamxVz4wpDHB8X9A9.",
+             "traefik.http.routers.{{ PROJECT_NAME }}-http.entrypoints": "web",
+             "traefik.http.routers.{{ PROJECT_NAME }}-http.rule": "Host(`{{ PROJECT_NAME }}.bolivar.kedrovsky.com`)",
+             "traefik.http.routers.{{ PROJECT_NAME }}-http.middlewares": "{{ PROJECT_NAME }}-https@docker",
+             "traefik.http.routers.{{ PROJECT_NAME }}.middlewares": "{{ PROJECT_NAME }}-auth",
+             "traefik.http.routers.{{ PROJECT_NAME }}.entrypoints": "websecure",
+             "traefik.http.routers.{{ PROJECT_NAME }}.rule": "Host(`{{ PROJECT_NAME }}.bolivar.kedrovsky.com`)",
+             "traefik.http.routers.{{ PROJECT_NAME }}.tls": "true",
+             "traefik.http.routers.{{ PROJECT_NAME }}.tls.certresolver": "myresolver"
+          }'
+    - name: deploy php container
+      docker_container:
+        name: '{{ PROJECT_NAME }}-php'
+        image: wodby/wordpress-php:{{ PHP_TAG }}
+        volumes:
+          - './site:/var/www/html'
+        networks:
+          - name: '{{ PROJECT_NAME }}'
+        purge_networks: yes
+        restart_policy: unless-stopped
+        env:
+          APP_ROOT: '/var/www/html'
+    - name: deploy db container
+      docker_container:
+        name: '{{ PROJECT_NAME }}-db'
+        image: wodby/mariadb:{{ MARIADB_TAG }}
+        volumes:
+          - './data:/var/lib/mysql'
+        networks:
+          - name: '{{ PROJECT_NAME }}'
+        purge_networks: yes
+        restart_policy: unless-stopped
+        env:
+          MYSQL_DATABASE: '{{ DB_NAME }}'
+          MYSQL_USER: '{{ DB_USER }}'
+          MYSQL_PASSWORD: '{{ DB_PASSWORD }}'
+          MYSQL_ROOT_PASSWORD: '{{ DB_ROOT_PASSWORD }}'
