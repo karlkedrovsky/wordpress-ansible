@@ -1,16 +1,16 @@
-# Docker Setup For Drupal Development Using Ansible.
+# Docker Setup For WordPress Development Using Ansible.
 
-This is meant to be a starter template for setting up docker containers for running Drupal. It uses Ansible to create the containers instead of docker-compose.
+This is meant to be a starter template for setting up docker containers for running WordPress. It uses Ansible to create the containers instead of docker-compose.
 
 The containers used are from [Wodby](https://wodby.com/) and the following referencess are helpful when configuring the playbook.
 
 * [docker-compose.yml](https://github.com/wodby/docker4wordpress/blob/master/docker-compose.yml) for container configuration.
 * [Available environment variables for configuration](https://github.com/wodby/docker4wordpress/blob/master/.env)
-* [Wodby Drupal stack docs](https://wodby.com/docs/1.0/stacks/drupal/)
+* [Wodby WordPress stack docs](https://wodby.com/docs/1.0/stacks/wordpress/)
 
 ## Notes
 
-It's assumed that the Drupal installation will be kept in the site directory with the web root being site/web.
+It's assumed that the WordPress installation will be kept in the site directory with the web root being site/web.
 
 The settings for the environment variables referenced above are kept in the vars.yml file.
 
@@ -22,12 +22,7 @@ Copy/fork this repo, update the "PROJECT_NAME" variable in the "vars" file and r
 
 Obviously using a different inventory file and potentially not specifying the "--connection" optiono if you're not creating the containers on your local machine that is named "bolivar".
 
-To install a fresh copy of Drupal:
-
-    docker exec -it PROJECT_NAME-php /bin/bash
-    composer create-project drupal/recommended-project .
-
-Then visit the site and complete the site setup.
+The "site" directory is the docroot of the WordPress site, installation is simply just copying the files from the WordPress download to this directory and going through the [installation instructions](https://wordpress.org/support/article/how-to-install-wordpress/).
 
 This setup assumes you've already set up the [traefik container](https://github.com/karlkedrovsky/traefik-ansible) on the machine to handle inbound traffic.
 
