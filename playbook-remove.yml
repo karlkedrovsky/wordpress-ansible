@@ -36,6 +36,17 @@
       when:
         - resultsdb.exists
         - resultsdb.container['State']['Status'] == 'running'
+    - name: get info regarding the mailhog conainer
+      docker_container_info:
+        name: '{{ PROJECT_NAME }}-mailhog'
+      register: resultsmailhog
+    - name: stop mailhog container
+      docker_container:
+        name: '{{ PROJECT_NAME }}-mailhog'
+        state: 'stopped'
+      when:
+        - resultsmailhog.exists
+        - resultsmailhog.container['State']['Status'] == 'running'
     - name: remove web conainer
       docker_container:
         name: '{{ PROJECT_NAME }}-web'
@@ -47,6 +58,10 @@
     - name: remove db container
       docker_container:
         name: '{{ PROJECT_NAME }}-db'
+        state: 'absent'
+    - name: remove mailhog container
+      docker_container:
+        name: '{{ PROJECT_NAME }}-mailhog'
         state: 'absent'
     - name: remove {{ PROJECT_NAME }} network
       docker_network:

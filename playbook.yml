@@ -49,6 +49,7 @@
         restart_policy: unless-stopped
         env:
           APP_ROOT: '/var/www/html'
+          PHP_SENDMAIL_PATH: '/usr/sbin/sendmail -t -i -S {{ PROJECT_NAME }}-mailhog:1025'
     - name: deploy db container
       docker_container:
         name: '{{ PROJECT_NAME }}-db'
@@ -64,3 +65,28 @@
           MYSQL_USER: '{{ DB_USER }}'
           MYSQL_PASSWORD: '{{ DB_PASSWORD }}'
           MYSQL_ROOT_PASSWORD: '{{ DB_ROOT_PASSWORD }}'
+    - name: deploy mailhog container
+      docker_container:
+        name: '{{ PROJECT_NAME }}-mailhog'
+        image: mailhog/mailhog
+        networks:
+          - name: web
+          - name: '{{ PROJECT_NAME }}'
+        purge_networks: yes
+        restart_policy: unless-stopped
+        labels:
+          '{
+             "traefik.enable": "true",
+             "traefik.http.services.{{ PROJECT_NAME }}-mailhog.loadbalancer.server.port": "8025",
+             "traefik.http.middlewares.{{ PROJECT_NAME }}-mailhog-https.redirectscheme.scheme": "https",
+             "traefik.http.middlewares.{{ PROJECT_NAME }}-mailhog-https.redirectscheme.permanent": "true",
+             "traefik.http.middlewares.{{ PROJECT_NAME }}-mailhog-auth.basicauth.users": "wordpress:$apr1$rRXORrq4$qvqRFamxVz4wpDHB8X9A9.",
+             "traefik.http.routers.{{ PROJECT_NAME }}-mailhog-http.entrypoints": "web",
+             "traefik.http.routers.{{ PROJECT_NAME }}-mailhog.rule": "Host(`mailhog.{{ PROJECT_NAME }}.bolivar.kedrovsky.com`)",
+             "traefik.http.routers.{{ PROJECT_NAME }}-mailhog-http.middlewares": "{{ PROJECT_NAME }}-mailhog-https@docker",
+             "traefik.http.routers.{{ PROJECT_NAME }}-mailhog.middlewares": "{{ PROJECT_NAME }}-mailhog-auth",
+             "traefik.http.routers.{{ PROJECT_NAME }}-mailhog.entrypoints": "websecure",
+             "traefik.http.routers.{{ PROJECT_NAME }}-mailhog.rule": "Host(`mailhog.{{ PROJECT_NAME }}.bolivar.kedrovsky.com`)",
+             "traefik.http.routers.{{ PROJECT_NAME }}-mailhog.tls": "true",
+             "traefik.http.routers.{{ PROJECT_NAME }}-mailhog.tls.certresolver": "myresolver"
+          }'
