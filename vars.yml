@@ -1,6 +1,9 @@
 PROJECT_NAME: wordpress-ansible
 PROJECT_BASE_URL: wordpress-ansible.bolivar.kedrovsky.com
 
+BASIC_AUTH_USER: wordpress
+BASIC_AUTH_PASSWORD: $apr1$rRXORrq4$qvqRFamxVz4wpDHB8X9A9.
+
 DB_NAME: wordpress
 DB_USER: wordpress
 DB_PASSWORD: wordpress
